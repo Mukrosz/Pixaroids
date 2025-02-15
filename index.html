@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixarithm Minted Fragments</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchData() {
+            const query = `
+                query {
+                    inscription(where: { collection: { symbol: { _eq: "PIXAROIDS5" } } }) {
+                        metadata(path: "$.metadata.name")
+                        current_owner
+                    }
+                }
+            `;
+
+            const response = await fetch("https://new-api.asteroidprotocol.io/v1/graphql", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query })
+            });
+
+            const result = await response.json();
+            const inscriptions = result.data.inscription;
+
+            // Process data for Chart.js
+            const counts = {};
+            inscriptions.forEach(i => {
+                const match = i.metadata.match(/^(.*?) Fragment \d+$/);
+                if (match) {
+                    const name = match[1];
+                    counts[name] = (counts[name] || 0) + 1;
+                }
+            });
+
+            // Convert to array and sort alphabetically by Pixarith Name (X-Axis)
+            const sortedData = Object.entries(counts)
+                .map(([name, count]) => ({ Pixarith: name, Minted: count }))
+                .sort((a, b) => a.Pixarith.localeCompare(b.Pixarith)); // Alphabetical sorting
+
+            const labels = sortedData.map(item => item.Pixarith);
+            const data = sortedData.map(item => item.Minted);
+
+            // Render Chart
+            const ctx = document.getElementById("mintedChart").getContext("2d");
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Fragments Minted",
+                        data: data,
+                        backgroundColor: "rgba(54, 162, 235, 0.5)",
+                        borderColor: "rgba(54, 162, 235, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,  // Allows custom height & width
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Pixarith Name",
+                                font: { size: 14 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,  // Ensure it starts at 0
+                            min: 0,  // Set min Y value to 0
+                            max: 4,  // Set max Y value to 4
+                            ticks: {
+                                stepSize: 1  // Force whole numbers (0, 1, 2, 3, 4)
+                            },
+                            title: {
+                                display: true,
+                                text: "Fragments Minted",
+                                font: { size: 14 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.onload = fetchData;
+    </script>
+    <style>
+        /* Make the chart smaller */
+        #chart-container {
+            width: 600px;
+            height: 400px;
+            margin: auto; /* Center it */
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Pixarithm Minted Fragments</h1>
+    <div id="chart-container">
+        <canvas id="mintedChart"></canvas>
+    </div>
+</body>
+</html>
