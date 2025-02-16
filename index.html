@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixarithm Minted Fragments</title>
+    <title>Pixarithmm Minted Fragments</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -33,7 +33,7 @@
     </style>
 </head>
 <body>
-    <h1>Pixarithm Minted Fragments</h1>
+    <h1>Pixarithmm Minted Fragments</h1>
     <div id="chart-container">
         <canvas id="mintedChart"></canvas>
     </div>
@@ -64,8 +64,8 @@
                 if (match) {
                     const name = match[1];
                     counts[name] = (counts[name] || 0) + 1;
-                    if (!owners[name]) owners[name] = [];
-                    owners[name].push(i.current_owner);
+                    if (!owners[name]) owners[name] = {};
+                    owners[name][i.current_owner] = (owners[name][i.current_owner] || 0) + 1;
                 }
             });
 
@@ -73,13 +73,13 @@
             const totalFragments = 152;
 
             const sortedData = Object.entries(counts)
-                .map(([name, count]) => ({ Pixarith: name, Minted: count }))
-                .sort((a, b) => a.Pixarith.localeCompare(b.Pixarith));
+                .map(([name, count]) => ({ Pixarithm: name, Minted: count }))
+                .sort((a, b) => a.Pixarithm.localeCompare(b.Pixarithm));
 
-            const labels = sortedData.map(item => item.Pixarith);
+            const labels = sortedData.map(item => item.Pixarithm);
             const data = sortedData.map(item => item.Minted);
             const backgroundColors = labels.map(name => {
-                return counts[name] === 4 && new Set(owners[name]).size === 1 ? "rgba(0, 255, 0, 0.7)" : "rgba(173, 216, 230, 0.7)";
+                return counts[name] === 4 && Object.keys(owners[name]).length === 1 ? "rgba(0, 255, 0, 0.7)" : "rgba(173, 216, 230, 0.7)";
             });
 
             const ctx = document.getElementById("mintedChart").getContext("2d");
@@ -106,7 +106,7 @@
                             callbacks: {
                                 label: function(tooltipItem) {
                                     const pixarithName = labels[tooltipItem.dataIndex];
-                                    const ownerList = owners[pixarithName] ? owners[pixarithName].join("\n") : "No owners found";
+                                    const ownerList = owners[pixarithName] ? Object.entries(owners[pixarithName]).map(([owner, count]) => `${count} - ${owner}`).join("\n") : "No owners found";
                                     return ownerList.split("\n");
                                 }
                             }
@@ -119,7 +119,7 @@
                             max: 5,
                             ticks: { stepSize: 1 }
                         },
-                        y: { title: { display: true, text: "Pixarith Name", font: { size: 14, weight: 'bold' } } }
+                        y: { title: { display: true, text: "Pixarithm Name", font: { size: 14, weight: 'bold' } } }
                     }
                 }
             });
