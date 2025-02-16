@@ -30,6 +30,15 @@
             box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
+        .x-icon {
+            display: block;
+            width: 30px;
+            height: 30px;
+            margin: 20px auto;
+            background: url('assets/images/x-icon.png') no-repeat center;
+            background-size: contain;
+            filter: drop-shadow(0px 0px 5px rgba(173, 216, 230, 0.8));
+        }
     </style>
 </head>
 <body>
@@ -37,6 +46,7 @@
     <div id="chart-container">
         <canvas id="mintedChart"></canvas>
     </div>
+    <a href="https://x.com/pixaroids" target="_blank" class="x-icon"></a>
     <script>
         async function fetchData() {
             const query = `
