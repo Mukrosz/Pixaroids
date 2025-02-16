@@ -37,12 +37,12 @@
                 }
             });
 
-            // Convert to array and sort alphabetically by Pixarith Name (X-Axis)
+            // Convert to array and sort alphabetically by Pixarithm Name (X-Axis)
             const sortedData = Object.entries(counts)
-                .map(([name, count]) => ({ Pixarith: name, Minted: count }))
-                .sort((a, b) => a.Pixarith.localeCompare(b.Pixarith)); // Alphabetical sorting
+                .map(([name, count]) => ({ Pixarithm: name, Minted: count }))
+                .sort((a, b) => a.Pixarithm.localeCompare(b.Pixarithm)); // Alphabetical sorting
 
-            const labels = sortedData.map(item => item.Pixarith);
+            const labels = sortedData.map(item => item.Pixarithm);
             const data = sortedData.map(item => item.Minted);
 
             // Render Chart
@@ -66,7 +66,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: "Pixarith Name",
+                                text: "Pixarithm Name",
                                 font: { size: 14 }
                             }
                         },
