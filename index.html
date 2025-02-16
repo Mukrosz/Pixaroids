@@ -37,6 +37,10 @@
                 }
             });
 
+            // Calculate total minted fragments
+            const totalMinted = Object.values(counts).reduce((sum, value) => sum + value, 0);
+            const totalFragments = 152;  // Fixed Pixarithm fragments total
+
             // Convert to array and sort alphabetically by Pixarithm Name (X-Axis)
             const sortedData = Object.entries(counts)
                 .map(([name, count]) => ({ Pixarithm: name, Minted: count }))
@@ -52,7 +56,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: "Fragments Minted",
+                        label: `Fragments Minted (${totalMinted}/${totalFragments})`,
                         data: data,
                         backgroundColor: "rgba(54, 162, 235, 0.5)",
                         borderColor: "rgba(54, 162, 235, 1)",
