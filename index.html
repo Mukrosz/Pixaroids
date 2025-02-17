@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixarithm Minted Fragments</title>
+    <title>Pixarithmm Minted Fragments</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -48,17 +48,19 @@
         }
         .asteroid-icon {
             background-image: url('assets/images/asteroid-icon.png');
+            width: 36px;
+            height: 36px;
         }
     </style>
 </head>
 <body>
-    <h1>Pixarithm Minted Fragments</h1>
+    <h1>Pixarithmm Minted Fragments</h1>
     <div id="chart-container">
         <canvas id="mintedChart"></canvas>
     </div>
     <div class="icon-container">
         <a href="https://x.com/pixaroids" target="_blank" class="icon x-icon"></a>
-        <a href="https://asteroidprotocol.io/app/launchpad/PIXAROIDS5" target="_blank" class="icon asteroid-icon"></a>
+        <a href="#" target="_blank" class="icon asteroid-icon"></a>
     </div>
     <script>
         async function fetchData() {
@@ -79,7 +81,7 @@
 
             const result = await response.json();
             const inscriptions = result.data.inscription;
-
+            
             const counts = {};
             const owners = {};
             inscriptions.forEach(i => {
@@ -91,14 +93,14 @@
                     owners[name][i.current_owner] = (owners[name][i.current_owner] || 0) + 1;
                 }
             });
-
+            
             const totalMinted = Object.values(counts).reduce((sum, value) => sum + value, 0);
             const totalFragments = 152;
-
+            
             const sortedData = Object.entries(counts)
                 .map(([name, count]) => ({ Pixarithm: name, Minted: count }))
                 .sort((a, b) => a.Pixarithm.localeCompare(b.Pixarithm));
-
+            
             const labels = sortedData.map(item => item.Pixarithm);
             const data = sortedData.map(item => item.Minted);
             const backgroundColors = labels.map(name => {
@@ -117,7 +119,7 @@
                         borderColor: "rgba(173, 216, 230, 1)",
                         borderWidth: 2,
                         borderRadius: 5,
-                        hoverBackgroundColor: "rgba(138, 43, 226, 0.7)"
+                        hoverBackgroundColor: "rgba(138, 43, 226, 0.7)" 
                     }]
                 },
                 options: {
