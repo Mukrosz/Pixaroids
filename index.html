@@ -30,14 +30,24 @@
             box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
-        .x-icon {
-            display: block;
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .icon {
             width: 30px;
             height: 30px;
-            margin: 20px auto;
-            background: url('assets/images/x-icon.png') no-repeat center;
             background-size: contain;
+            background-repeat: no-repeat;
             filter: drop-shadow(0px 0px 5px rgba(173, 216, 230, 0.8));
+        }
+        .x-icon {
+            background-image: url('assets/images/x-icon.png');
+        }
+        .asteroid-icon {
+            background-image: url('assets/images/asteroid-icon.png');
         }
     </style>
 </head>
@@ -46,7 +56,10 @@
     <div id="chart-container">
         <canvas id="mintedChart"></canvas>
     </div>
-    <a href="https://x.com/pixaroids" target="_blank" class="x-icon"></a>
+    <div class="icon-container">
+        <a href="https://x.com/pixaroids" target="_blank" class="icon x-icon"></a>
+        <a href="https://asteroidprotocol.io/app/launchpad/PIXAROIDS5" target="_blank" class="icon asteroid-icon"></a>
+    </div>
     <script>
         async function fetchData() {
             const query = `
