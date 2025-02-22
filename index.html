@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* Global Styles */
         body {
             font-family: 'Orbitron', sans-serif;
             background: linear-gradient(135deg, #0f0f0f, #1a1a2e);
@@ -15,10 +16,73 @@
             padding: 20px;
             margin: 0;
         }
+
         h1 {
             font-size: 2rem;
             text-shadow: 2px 2px 10px rgba(255, 255, 255, 0.3);
         }
+
+        /* Gallery Styles */
+        #gallery-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 800px;
+            overflow: hidden;
+            position: relative;
+            height: 160px;
+        }
+
+        .gallery-wrapper {
+            display: flex;
+            gap: 15px;
+            transition: transform 0.8s ease-in-out;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            flex-wrap: nowrap;
+        }
+
+        .gallery-item {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .gallery-item:hover {
+            box-shadow: 0px 0px 20px rgba(0, 255, 255, 0.9);
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+
+        .gallery-nav:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .prev { left: 10px; }
+        .next { right: 10px; }
+
+        /* Chart Styles */
         #chart-container {
             width: 90%;
             max-width: 800px;
@@ -30,6 +94,24 @@
             box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
         }
+
+        /* Tooltip Styles */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Icon Styles */
         .icon-container {
             display: flex;
             justify-content: center;
@@ -37,6 +119,7 @@
             gap: 15px;
             margin-top: 20px;
         }
+
         .icon {
             width: 30px;
             height: 30px;
@@ -44,9 +127,11 @@
             background-repeat: no-repeat;
             filter: drop-shadow(0px 0px 5px rgba(173, 216, 230, 0.8));
         }
+
         .x-icon {
             background-image: url('assets/images/x-icon.png');
         }
+
         .asteroid-icon {
             background-image: url('assets/images/asteroid-icon.png');
             width: 36px;
@@ -56,6 +141,12 @@
 </head>
 <body>
     <h1>Pixarithm Minted Fragments</h1>
+    <div id="tooltip" class="tooltip"></div>
+    <div id="gallery-container">
+        <button class="gallery-nav prev" onclick="moveGallery(-1)">&#10094;</button>
+        <div class="gallery-wrapper" id="gallery-wrapper"></div>
+        <button class="gallery-nav next" onclick="moveGallery(1)">&#10095;</button>
+    </div>
     <div id="chart-container">
         <canvas id="mintedChart"></canvas>
     </div>
@@ -63,12 +154,25 @@
         <a href="https://x.com/pixaroids" target="_blank" class="icon x-icon"></a>
         <a href="https://asteroidprotocol.io/app/launchpad/PIXAROIDS5" target="_blank" class="icon asteroid-icon"></a>
     </div>
+
     <script>
+        // Constants
+        const galleryContainer = document.getElementById('gallery-container');
+        const galleryWrapper = document.getElementById('gallery-wrapper');
+        const chartContainer = document.getElementById('chart-container');
+        const tooltip = document.getElementById('tooltip');
+
+        let galleryIndex = 0;
+        let galleryImages = [];
+
+        // Fetch data from API
         async function fetchData() {
             const query = `
                 query {
                     inscription(where: { collection: { symbol: { _eq: "PIXAROIDS5" } } }) {
                         metadata(path: "$.metadata.name")
+                        transaction{hash}
+                        content_path
                         current_owner
                     }
                 }
@@ -82,7 +186,18 @@
 
             const result = await response.json();
             const inscriptions = result.data.inscription;
-            
+
+            // Process inscriptions data
+            galleryImages = inscriptions.map(i => ({
+                image: i.content_path,
+                link: `https://asteroidprotocol.io/app/inscription/${i.transaction.hash}`,
+                name: i.metadata
+            }));
+
+            // Update gallery
+            updateGallery();
+
+            // Process data for chart
             const counts = {};
             const owners = {};
             inscriptions.forEach(i => {
@@ -94,20 +209,21 @@
                     owners[name][i.current_owner] = (owners[name][i.current_owner] || 0) + 1;
                 }
             });
-            
+
             const totalMinted = Object.values(counts).reduce((sum, value) => sum + value, 0);
             const totalFragments = 152;
-            
+
             const sortedData = Object.entries(counts)
                 .map(([name, count]) => ({ Pixarithm: name, Minted: count }))
                 .sort((a, b) => a.Pixarithm.localeCompare(b.Pixarithm));
-            
+
             const labels = sortedData.map(item => item.Pixarithm);
             const data = sortedData.map(item => item.Minted);
             const backgroundColors = labels.map(name => {
                 return counts[name] === 4 && Object.keys(owners[name]).length === 1 ? "rgba(0, 255, 0, 0.7)" : "rgba(173, 216, 230, 0.7)";
             });
 
+            // Create chart
             const ctx = document.getElementById("mintedChart").getContext("2d");
             new Chart(ctx, {
                 type: "bar",
@@ -120,7 +236,7 @@
                         borderColor: "rgba(173, 216, 230, 1)",
                         borderWidth: 2,
                         borderRadius: 5,
-                        hoverBackgroundColor: "rgba(138, 43, 226, 0.7)" 
+                        hoverBackgroundColor: "rgba(138, 43, 226, 0.7)"
                     }]
                 },
                 options: {
@@ -150,6 +266,64 @@
                 }
             });
         }
+
+        // Update gallery
+        function updateGallery() {
+            galleryWrapper.innerHTML = "";
+            galleryWrapper.style.width = "100%";
+
+            galleryImages.forEach(img => {
+                const a = document.createElement("a");
+                a.href = img.link;
+                a.target = "_blank";
+
+                const imgElem = document.createElement("img");
+                imgElem.src = img.image;
+                imgElem.classList.add("gallery-item");
+                imgElem.setAttribute("data-name", img.name);
+
+                a.appendChild(imgElem);
+                galleryWrapper.appendChild(a);
+            });
+
+            galleryWrapper.style.transform = `translateX(${galleryIndex * -140}px)`;
+            attachTooltipEvents();
+        }
+
+        // Move gallery
+        function moveGallery(step) {
+            const maxIndex = galleryImages.length - 5;
+            galleryIndex = Math.min(Math.max(galleryIndex + step, 0), maxIndex);
+            galleryWrapper.style.transform = `translateX(${galleryIndex * -140}px)`;
+        }
+
+        // Attach tooltip events
+        function attachTooltipEvents() {
+            document.querySelectorAll(".gallery-item").forEach(item => {
+                item.addEventListener("mouseenter", (event) => {
+                    const name = event.target.getAttribute("data-name");
+                    if (name) {
+                        tooltip.innerText = name;
+                        tooltip.style.left = `${event.clientX}px`;
+                        tooltip.style.top = `${event.clientY - 40}px`;
+                        tooltip.style.visibility = "visible";
+                        tooltip.style.opacity = "1";
+                    }
+                });
+
+                item.addEventListener("mousemove", (event) => {
+                    tooltip.style.left = `${event.clientX + 10}px`;
+                    tooltip.style.top = `${event.clientY - 40}px`;
+                });
+
+                item.addEventListener("mouseleave", () => {
+                    tooltip.style.visibility = "hidden";
+                    tooltip.style.opacity = "0";
+                });
+            });
+        }
+
+        // Load data on window load
         window.onload = fetchData;
     </script>
 </body>
